@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestión de Cuentas</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+    }
+    .button-container {
+      margin-bottom: 20px;
+    }
+    .button {
+      padding: 10px 20px;
+      margin-right: 10px;
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .button:hover {
+      background-color: #0056b3;
+    }
+    .dropdown {
+      padding: 10px 20px;
+      margin-right: 10px;
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      position: relative;
+      display: inline-block;
+    }
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      background-color: #f9f9f9;
+      min-width: 160px;
+      box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+      z-index: 1;
+    }
+    .dropdown-content a {
+      color: black;
+      padding: 12px 16px;
+      text-decoration: none;
+      display: block;
+    }
+    .dropdown-content a:hover {
+      background-color: #f1f1f1;
+    }
+    .dropdown:hover .dropdown-content {
+      display: block;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Gestión de Cuentas</h1>
+    
+    <div class="button-container">
+      <h2>Seleccione una acción</h2>
+      <button id="listar-btn" class="button">Listar</button>
+      <button id="crear-btn" class="button">Crear</button>
+      <button id="editar-btn" class="button">Editar</button>
+      <button id="eliminar-btn" class="button">Eliminar</button>
+      <!-- menu despegable o dropdown... -->
+      <div class="dropdown">
+        <button class="button">...</button>
+        <div class="dropdown-content">
+          <a href="#">Más</a>
+          <a href="#">Ayuda</a>
+          <a href="#">TODO</a>
+        </div>
+      </div>
+    </div>
+    
+    <h2>Listado de Usuarios</h2>
+    
+    <table id="user-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Username</th>
+          <th>Saldo</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+          </tr>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+          </tr>
+        <!-- Show users here -->
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+
+    let cuentas = []; // Variable para almacenar las cuentas cargadas
+
+    document.getElementById('listar-btn').addEventListener('click', function() {
+    fetch('cuentas.json')
+      .then(response => response.json())
+      .then(data => {
+        if (!Array.isArray(data.cuentas)) {
+        throw new Error('El formato de los datos JSON es incorrecto');
+      }
+       cuentas = data.cuentas; // Guardar las cuentas en la variable
+
+        const table = document.getElementById('user-table');
+        const tbody = table.querySelector('tbody');
+
+        // clean table before filling it
+        tbody.innerHTML = '';
+
+        // fill table with data from json archive
+        data.cuentas.forEach(user => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${user.id}</td>
+            <td>${user.username}</td>
+            <td>${user.saldo}</td>
+          `;
+          tbody.appendChild(row);
+        });
+      })
+      .catch(error => console.error('Error al cargar el archivo JSON:', error));
+  });
+
+   document.getElementById('crear-btn').addEventListener('click', function() {
+      const id = prompt('Ingrese el ID del usuario:');
+      const username = prompt('Ingrese el nombre de usuario:');
+      const saldo = prompt('Ingrese el saldo del usuario:');
+
+      if (id && username && saldo) {
+        const nuevoUsuario = {
+          id: Number(id),
+          username: username,
+          saldo: saldo
+        };
+        
+        console.log('Nuevo usuario creado:', nuevoUsuario);
+      } else {
+        console.log('Creación de usuario cancelada o datos incompletos.');
+      }
+    });
+
+    document.getElementById('editar-btn').addEventListener('click', function() {
+      const id = prompt('Ingrese el ID del usuario a editar:');
+      const userId = Number(id);
+
+      // Find user by ID
+      const user = cuentas.find(u => u.id === userId);
+
+      if (user) {
+        // Show old data from user
+        console.log('Versión anterior del usuario:', user);
+
+        const nuevoUsername = prompt('Ingrese el nuevo nombre de usuario:', user.username);
+        const nuevoSaldo = prompt('Ingrese el nuevo saldo del usuario:', user.saldo);
+
+        // update data
+        const usuarioActualizado = { ...user, username: nuevoUsername, saldo: nuevoSaldo };
+
+        // show updated data from user
+        console.log('Versión actualizada del usuario:', usuarioActualizado);
+
+        // Update user from the account array 
+        const index = cuentas.findIndex(u => u.id === userId);
+        cuentas[index] = usuarioActualizado;
+      } else {
+        console.log(`Usuario con ID ${id} no encontrado.`);
+      }
+    });
+     document.getElementById('eliminar-btn').addEventListener('click', function() {
+      const id = prompt('Ingrese el ID del usuario a eliminar:');
+      const userId = Number(id);
+
+      // Find user by ID
+      const user = cuentas.find(u => u.id === userId);
+
+      if (user) {
+        // Show user to eliminate
+        console.log('Usuario a eliminar:', user);
+
+        // eliminate user from the account array
+        cuentas = cuentas.filter(u => u.id !== userId);
+
+        // Refresh table on UI 
+        document.getElementById('listar-btn').click();
+      } else {
+        console.log(`Usuario con ID ${id} no encontrado.`);
+      }
+    });
+  </script>  
+</body>
+</html>
